@@ -6,7 +6,7 @@ declare global {
     gtag: Function
   }
 }
-type GoogleAnalyticsContextType = Function | undefined;
+type GoogleAnalyticsContextType = Function | undefined | null;
 
 export const GoogleAnalyticsContext = createContext<GoogleAnalyticsContextType>(undefined);
 
@@ -16,21 +16,28 @@ interface GoogleAnalyticsProviderProps {
 }
 
 export const GoogleAnalyticsProvider = ({ measurementId, children }: GoogleAnalyticsProviderProps) => {
-  const [gtag, setGtag] = useState<GoogleAnalyticsContextType>();
+  const [gtag, setGtag] = useState<GoogleAnalyticsContextType>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const script = document.createElement('script');
     script.async = true;
+    script.addEventListener('load', () => setIsLoaded(true));
     script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
     document.head.prepend(script);
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function _gtag() {
-      window.dataLayer.push(arguments);
-    };
-    window.gtag('js', new Date());
-    window.gtag('config', measurementId);
-    setGtag(() => (...args: any) => window.gtag(...args));
-  }, [measurementId]);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function _gtag() {
+        window.dataLayer.push(arguments);
+      };
+      window.gtag('js', new Date());
+      window.gtag('config', measurementId);
+      setGtag(() => (...args: any) => window.gtag(...args));
+    }
+  }, [measurementId, isLoaded]);
 
   return (
     <GoogleAnalyticsContext.Provider value={gtag}>

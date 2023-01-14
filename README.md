@@ -29,10 +29,15 @@ If you need to fire custom events in your application simply use the hook as fol
 import { useGoogleAnalytics } from 'react-ga4-gtag';
 
 const gtag = useGoogleAnalytics();
-gtag('event', 'screen_view', {
-  'app_name': 'myAppName',
-  'screen_name': 'Home'
-});
+
+useEffect(() => {
+    if(gtag !== null){ // ensure we have initialized gtag scripts
+      gtag('event', 'screen_view', {
+      'app_name': 'myAppName',
+      'screen_name': 'Home'
+    });
+    }
+  }, [gtag]);
 ```
 
 The hook must be used within the provider, but if it wraps your whole app there wont be any issues.
